@@ -1,5 +1,5 @@
 import MainGrid from '../src/components/MainGrid'
-import React from  'react'
+import React, { useEffect, useState } from  'react'
 import Box from '../src/components/Box'
 import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet } from '../src/lib/AlurakutCommons';
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations';
@@ -22,6 +22,44 @@ function ProfileSidebar(propriedades) {
   )
 }
 
+
+
+function ProfileRelationBox(propriedades){
+  function top(lista){
+    return lista[Math.floor(Math.random() * lista.length)];
+  }
+  const lista = [top(propriedades.item),top(propriedades.item),top(propriedades.item),top(propriedades.item),top(propriedades.item),top(propriedades.item)]
+  return(
+    <ProfileRelationsBoxWrapper>
+      <h2 className="smallTitle">
+        {propriedades.title}({propriedades.item.length})
+      </h2>
+        <ul>
+        {propriedades.item.splice(1,6).map((item) =>{
+            return (
+              <li key={item.id}>
+                {
+                  item.avatar_url ?
+                  <a href={`https://github.com/${item.login}`} target="_blank" key={item.login}>
+                    <img src={item.avatar_url}/>
+                    <span>{item.login}</span>
+                  </a> :
+                  <a href={`https://github.com/${item.full_name}`} target="_blank" key={item.full_name}>
+                  <img src={'https://github.com/github.png'}/>
+                  <span>{item.name}</span>
+                </a>
+                }
+              </li>
+            )
+            })}  
+        </ul>
+    </ProfileRelationsBoxWrapper>
+  )
+}
+
+
+
+
 export default function Home() {
   const [comunidades, setComunidades] = React.useState([{
     id: '12122112121121211121221212',
@@ -37,6 +75,29 @@ export default function Home() {
     'marcobrunodev',
     'felipefialho'
   ]
+
+  const [subs, setSubs] = useState([])
+  const [seguindo, setSeguindo] = useState([])
+  
+  useEffect(function() {
+    fetch(`https://api.github.com/users/${usuarioAleatorio}/starred`)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (dados){
+      setSubs(dados)
+    })
+  }, [])
+
+  useEffect(function() {
+    fetch(`https://api.github.com/users/${usuarioAleatorio}/following`)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (dados){
+      setSeguindo(dados)
+    })
+  }, [])
 
   return (
     <>
@@ -80,23 +141,8 @@ export default function Home() {
           
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
-          <ProfileRelationsBoxWrapper>
-            <h2 className="smallTitle">
-              Pessoas da comunidade ({pessoasFavoritas.length})
-            </h2>
-            <ul>
-              {pessoasFavoritas.map((itemAtual) => {
-                return (
-                  <li key={itemAtual.githubUser}>
-                    <a href={`/users/${itemAtual}`} key={itemAtual}>
-                      <img src={`https://github.com/${itemAtual}.png`} />
-                      <span>{itemAtual}</span>
-                    </a>
-                  </li>
-                )
-              })}
-            </ul>
-          </ProfileRelationsBoxWrapper>
+            <ProfileRelationBox title="pessoas da comunidade"  item={seguindo}/> 
+            <ProfileRelationBox title="projetos seguidos"  item={subs}/>
           <ProfileRelationsBoxWrapper>
             <h2 className="smallTitle">
               Comunidades({comunidades.length})
